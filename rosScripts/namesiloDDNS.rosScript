@@ -1,0 +1,33 @@
+:local token "xxxxxx";
+
+:local PPPOE "PPPOE";
+
+:local domain "xxxxxx.com";
+:local record xxxxxx;
+
+:local ttl 3600;
+
+:local dnsIP;
+:do {
+  :set dnsIP [:resolve "$record.$domain"];
+} on-error={
+  :set dnsIP "";
+}
+
+:local IPv4 [/ip address get [find interface=$PPPOE] address];
+:set IPv4 [:pick $IPv4 0 [:find $IPv4 "/"]];
+
+:if ($dnsIP != $IPv4) do={
+  :local result [/tool fetch http-method=post http-data="{\"token\":\"$token\",\"domain\":\"$domain\",\"record\":\"$record\",\"ip\":\"$IPv4\",\"ttl\":\"$ttl\"}" url="https://xxxxxx.com/xxxxxx" check-certificate=no as-value output=user];
+  :if ($result->"status" = "finished") do={
+    :if ($result->"data" = "0") do={
+      :log info "namesiloDDNS:IPv4 update ok! IPv4: $IPv4";
+    } else {
+      :if ($result->"data" = "2") do={
+        :log warning "namesiloDDNS:IPv4 not change! IPv4: $IPv4";
+      } else {
+        :log error "namesiloDDNS:IPv4 update error";
+      }
+    }
+  }
+}
