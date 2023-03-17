@@ -1,0 +1,20 @@
+:local iface "WireGuard1";
+:local domain "domain.com";
+:local record "ddns";
+
+:local dnsIP;
+:do {
+  :set dnsIP [:resolve "$record.$domain"];
+} on-error={
+  :set dnsIP "";
+}
+
+:local endpoint [/interface wireguard peers get [find interface=$iface] endpoint-address];
+:if ($dnsIP != "" && $dnsIP != $endpoint) do={
+
+  /interface wireguard peers set [find interface=$iface] disabled=yes;
+  /interface wireguard peers set [find interface=$iface] endpoint-address=$dnsIP;
+  /interface wireguard peers set [find interface=$iface] disabled=no;
+
+  :log warning "WireGuard:: $iface Endpoint Address Changed. Address: $dnsIP";
+}
