@@ -1,0 +1,9 @@
+:local IPv6Prefix [/ipv6 dhcp-client get PPPOE prefix];
+:set $IPv6Prefix [:pick $IPv6Prefix 0 [:find $IPv6Prefix "/"]];
+
+:local currentIPv6Prefix [/ipv6 firewall address-list get [find address-list name=internet_ipv6_prefix comment=Internet] address];
+:set currentIPv6Prefix [:pick $currentIPv6Prefix 0 [:find $currentIPv6Prefix "/"]];
+
+:if ($IPv6Prefix != $currentIPv6Prefix) do={
+  /ipv6 firewall address-list set [find address-list name=internet_ipv6_prefix comment=Internet] address="$IPv6Prefix/56";
+}

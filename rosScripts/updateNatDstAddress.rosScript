@@ -1,0 +1,15 @@
+:delay 120s;
+
+:local PPPOE "PPPOE";
+
+:local IPv4 [/ip address get [find interface=$PPPOE] address];
+
+:set IPv4 [:pick $IPv4 0 [:find $IPv4 "/"]];
+
+:local natDstPorts { "12000"; "12001"; "12002" };
+
+:foreach k,natPort in=$natDstPorts do={
+  :if ([/ip firewall nat get [find dst-port=$natPort] dst-address] != $IPv4) do={
+    /ip firewall nat set [find dst-port=$natPort] dst-address=$IPv4;
+  }
+}

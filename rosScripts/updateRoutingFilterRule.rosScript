@@ -1,0 +1,15 @@
+:local maskPPPOE [/ip address get [find interface=PPPOE] address];
+:set maskPPPOE [:pick $maskPPPOE [:find $maskPPPOE "/"] [:len $maskPPPOE]];
+:local networkPPPOE [/ip address get [find interface=PPPOE] network];
+
+:local maskWAN [/ip address get [find interface=WAN] address];
+:set maskWAN [:pick $maskWAN [:find $maskWAN "/"] [:len $maskWAN]];
+:local networkWAN [/ip address get [find interface=WAN] network];
+
+:local newFilter "if (dst in $networkPPPOE$maskPPPOE || dst in $networkWAN$maskWAN) {reject} else {accept}"
+:local currentFilter [/routing filter rule get [find chain=filterWanPPPOE] rule];
+
+:if ($newFilter != $currentFilter) do={
+  /routing filter rule set [find chain=filterWanPPPOE] rule $newFilter;
+  :log warning "routing filter rule change. old: $currentFilter. new: $newFilter";
+}
