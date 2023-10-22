@@ -9,7 +9,7 @@ var Core = require('@alicloud/pop-core');
 const getData = async (req) => {
   let body = await getRawBody(req);
   body = JSON.parse(body);
-  const { ttl = 600, type = 'A', domain, record, ip, priority = 1 } = body;
+  const { ttl = 600, type = 'A', domain, record, ip, priority = 1, id, secret } = body;
   return {
     ttl,
     type,
@@ -17,7 +17,9 @@ const getData = async (req) => {
     record,
     ip,
     priority,
-    fullDomain: `${record}.${domain}`
+    fullDomain: `${record}.${domain}`,
+    id,
+    secret
   };
 }
 
@@ -42,7 +44,7 @@ const getRecordList = async (params, inst) => {
   let recordList = [], success = false;
   try {
     const { type, domain, record } = params;
-    const res = await client.request('DescribeDomainRecords', {
+    const res = await inst.request('DescribeDomainRecords', {
       "DomainName": domain,
       "RRKeyWord": record,
       "Type": type
@@ -81,7 +83,7 @@ const updateDNSRecord = async (params, record, inst) => {
   let success = false;
   try {
     const { ip, ttl, type, line, priority } = params;
-    const params = {
+    const params2 = {
       "RR": record.RR,
       "RecordId": record.RecordId,
       "Type": type || record.Type,
@@ -90,7 +92,7 @@ const updateDNSRecord = async (params, record, inst) => {
       "Line": line || record.Line,
       "Priority": priority || record.Weight
     };
-    await inst.request('UpdateDomainRecord', params, { "method": "GET" });
+    await inst.request('UpdateDomainRecord', params2, { "method": "GET" });
     success = true;
   } catch (e) {
   }
